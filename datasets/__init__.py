@@ -1,0 +1,7 @@
+from datasets.datasets import DatasetsManager
+import datasets.coco
+import datasets.coco_iterator
+import datasets.coco_semi_iterator
+import datasets.coco_pose_iterator
+import datasets.coco_pose_semi_iterator
+import datasets.inference_iterator
