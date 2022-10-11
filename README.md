@@ -10,6 +10,10 @@ This is the official GitHub page for the paper:
 
 # Model 
 
+The model files are available on huggingface
+
+[https://huggingface.co/springsteinm/iart-semi-pose](https://huggingface.co/springsteinm/iart-semi-pose)
+
 # Slides
 
 # Notebook
