@@ -10,10 +10,16 @@ This is the official GitHub page for the paper:
 
 # Model 
 
-The model files are available on huggingface
+The model files are available on huggingface.
 
 [https://huggingface.co/springsteinm/iart-semi-pose](https://huggingface.co/springsteinm/iart-semi-pose)
 
 # Slides
 
 # Notebook
+
+If you are interested in using this model for your own project, there is a Colab notebook that shows how to load and use the trained models.
+
+[https://githubtocolab.com/TIBHannover/iart-semi-pose/blob/main/notebooks/example.ipynb](https://githubtocolab.com/TIBHannover/iart-semi-pose/blob/main/notebooks/example.ipynb)
+
+# Models
