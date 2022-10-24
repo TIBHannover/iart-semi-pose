@@ -1,0 +1,1127 @@
+<!doctype html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <title>reveal.js</title>
+
+    <link rel="stylesheet" href="dist/reset.css">
+    <link rel="stylesheet" href="dist/reveal.css">
+    <link rel="stylesheet" href="dist/theme/tib_l3s_lmu.css">
+
+    <script src="plugin/math/math.js"></script>
+
+    <!-- Theme used for syntax highlighted code -->
+    <link rel="stylesheet" href="plugin/highlight/monokai.css">
+    <style>
+        .lds-roller {
+            display: inline-block;
+            position: relative;
+            width: 80px;
+            height: 80px;
+        }
+
+        .lds-roller div {
+            animation: lds-roller 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+            transform-origin: 40px 40px;
+        }
+
+        .lds-roller div:after {
+            content: " ";
+            display: block;
+            position: absolute;
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: rgb(42, 42, 42);
+            margin: -4px 0 0 -4px;
+        }
+
+        .lds-roller div:nth-child(1) {
+            animation-delay: -0.036s;
+        }
+
+        .lds-roller div:nth-child(1):after {
+            top: 63px;
+            left: 63px;
+        }
+
+        .lds-roller div:nth-child(2) {
+            animation-delay: -0.072s;
+        }
+
+        .lds-roller div:nth-child(2):after {
+            top: 68px;
+            left: 56px;
+        }
+
+        .lds-roller div:nth-child(3) {
+            animation-delay: -0.108s;
+        }
+
+        .lds-roller div:nth-child(3):after {
+            top: 71px;
+            left: 48px;
+        }
+
+        .lds-roller div:nth-child(4) {
+            animation-delay: -0.144s;
+        }
+
+        .lds-roller div:nth-child(4):after {
+            top: 72px;
+            left: 40px;
+        }
+
+        .lds-roller div:nth-child(5) {
+            animation-delay: -0.18s;
+        }
+
+        .lds-roller div:nth-child(5):after {
+            top: 71px;
+            left: 32px;
+        }
+
+        .lds-roller div:nth-child(6) {
+            animation-delay: -0.216s;
+        }
+
+        .lds-roller div:nth-child(6):after {
+            top: 68px;
+            left: 24px;
+        }
+
+        .lds-roller div:nth-child(7) {
+            animation-delay: -0.252s;
+        }
+
+        .lds-roller div:nth-child(7):after {
+            top: 63px;
+            left: 17px;
+        }
+
+        .lds-roller div:nth-child(8) {
+            animation-delay: -0.288s;
+        }
+
+        .lds-roller div:nth-child(8):after {
+            top: 56px;
+            left: 12px;
+        }
+
+
+        @keyframes lds-roller {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="reveal">
+        <div class="slides">
+            <section>
+                <h1 style="text-align: left;margin-top: 12%;" class="r-stretch">Semi-supervised Human Pose Estimation in
+                    Art-historical Images</h1>
+                <p style="text-align: left;margin-bottom: 1em;">Matthias Springstein<sup>1</sup>, Stefanie
+                    Schneider<sup>2</sup>, Christian Althaus<sup>1,3</sup>, and Ralph
+                    Ewerth<sup>1,3,4</sup></p>
+                <p style="text-align: left;font-size: 70%; margin-bottom: 1em;">
+                    <sup>1</sup>TIB - Leibniz Information Centre for Science and Technology<br>
+                    <sup>2</sup>Ludwig Maximilian University of Munich<br>
+                    <sup>3</sup>Leibniz University Hannover, Institute of Data Science<br>
+                    <sup>4</sup>Leibniz University Hannover, L3S Research Center<br>
+                </p>
+                <p style="text-align: left;font-size: 70%; margin-bottom: 5em;">
+                    <a>https://github.com/TIBHannover/iart-semi-pose</a>
+                </p>
+
+            </section>
+            <!-- Motivation -->
+            <section>
+                <h2 style="margin-top:4%;margin-bottom:5%;">Motivation</h2>
+                <div class="r-stretch">
+                    <div
+                        style="margin:auto;width: 100%; display:flex; flex-wrap: nowrap; align-items: center; justify-content: space-between;">
+                        <img style="height:100%; width:25%" src="images/pleydenwurff_kreuzabnahme_1.jpg"></img>
+                        <img style="height:100%; width:25%" src="images/pontormo_kreuzabnahme_1.jpg"></img>
+                        <img style="height:100%; width:25%" src="images/caravaggio_grablegung_1.jpg"></img>
+                        <img style="height:100%; width:25%" src="images/rubens_grablegung_1.jpg"></img>
+                    </div>
+                    <p style="text-align: left; width: 100%; margin-left: 7%; font-weight:bold">
+                        Pose estimation in art:
+                    </p>
+                    <ul style="margin-bottom: 1%; text-align: left; width: 100%; margin-left: 10%;">
+                        <li>Poses and gestures are important for iconographic concepts</li>
+                        <li>Extraction of pose information allows for the analysis of large art datasets</li>
+                    </ul>
+                    <p style="text-align: left; width: 100%; margin-left: 7%; font-weight:bold">
+                        Pose estimation in art data is very challenging:
+                    </p>
+                    <ul style="margin-bottom: 1%; text-align: left; width: 100%; margin-left: 10%;">
+                        <li>No or very small collection of training images from the art domain</li>
+                        <li>More abstract and stylistically diverse representations of poses than in real-world datasets
+                        </li>
+                        <li>Finetuning and style transfer can reduce the domain gap, but do not close it</li>
+                    </ul>
+                </div>
+            </section>
+
+            <section>
+                <h2 style="margin-top:4%;margin-bottom:5%;">Goal</h2>
+
+                <ul style="text-align: left; width: 100%; margin-left: 10%;">
+                    <li>Building a state-of-the-art pose estimator for art-historical images</li>
+                    <li>Utilization of semi-superviced techniques to make use of unlabeled art data</li>
+                    <li>Comparison with other approaches based on style transfer or on relevant non-art data</li>
+                </ul>
+                <img class="r-stretch" width="100%" src="images/pose_examples_1.svg"></img>
+                <!-- Add some space  -->
+                <div style="height: 5em;"></div>
+
+            </section>
+
+            <section id="approach">
+                <h2 style="margin-top:4%;margin-bottom:5%;">Our Approach: Two-Stage Person Detector</h2>
+
+                <div style="text-align: left; width: 100%; margin-left: 10%;">
+                    Two-stage approach is based on two Transformer models [1]
+                    <ul>
+                        <li>First stage: prediction of bounding boxes for human appearances </li>
+                        <li>Second stage: prediction of keypoints of cropped bounding boxes </li>
+                    </ul>
+                </div>
+                <div style="height: 0.2em;"></div>
+                <object id="approach-detr" data="graphics/detr_all_small_without.svg" type="image/svg+xml" width="80%">
+                    <!-- Für Browser ohne SVG-Unterstützung -->
+                    <img src="graphics/detr_all_small_without.svg" width="100%" alt="Alternatives PNG-Bild">
+                </object>
+                <p hidden class="fragment" data-fragment-index="1"></p>
+                <p hidden class="fragment" data-fragment-index="2"></p>
+                <p hidden class="fragment" data-fragment-index="3"></p>
+                <p hidden class="fragment" data-fragment-index="4"></p>
+                <!-- <p hidden class="fragment" data-fragment-index="5"></p> -->
+                <!-- Add some space  -->
+                <div style="height: 20em;"></div>
+            </section>
+
+            <section>
+                <h2 style="margin-top:4%;margin-bottom:5%;">Our Approach for Semi-supervised Pose Estimation</h2>
+
+                <!-- <div class="r-stretch" style="display: flex; flex-wrap: nowrap;"> -->
+                <ul class="r-stretch" style="text-align: left; width: 60%; margin-left: 10%;">
+                    <li>Adaptation of Soft Teacher [2] or FixMatch [3] approach</li>
+                    <li>Use of labeled and unlabeled data for bounding box and keypoint prediction</li>
+                    <ul>
+                        <span style="font-weight: bold;">Labeled data:</span>
+                        <li style="margin-left: 2%;">Student uses input image and ground truth label for optimization
+                        </li>
+                        <span style="font-weight: bold;">Unlabeled data:</span>
+                        <li style="margin-left: 2%;">Teacher model predicts boxes or keypoints in a weakly augmented
+                            image</li>
+                        <li style="margin-left: 2%;">Student uses the strongly augmented image and the teacher's
+                            prediction for optimization</li>
+                    </ul>
+
+                </ul>
+                <!-- Add some space  -->
+                <!-- </div> -->
+
+                <div style="height: 20em;"></div>
+            </section>
+
+            <section id="semi">
+                <h2 style="margin-top:4%;margin-bottom:5%;">Our Approach for Semi-supervised Pose Estimation</h2>
+
+
+                <object id="approach-semi" data="graphics/detr_semi_v2.svg" type="image/svg+xml" width="50%">
+                    <!-- Für Browser ohne SVG-Unterstützung -->
+                    <img src="graphics/detr_semi_v2.svg" width="50%" alt="Alternatives PNG-Bild">
+                </object>
+                <!-- <img style="width:50%;" src="graphics/detr_semi_v2.svg"></img> -->
+                <!-- Add some space  -->
+                <!-- </div> -->
+                <p hidden class="fragment" data-fragment-index="1"></p>
+                <p hidden class="fragment" data-fragment-index="2"></p>
+                <p hidden class="fragment" data-fragment-index="3"></p>
+                <p hidden class="fragment" data-fragment-index="4"></p>
+                <p hidden class="fragment" data-fragment-index="5"></p>
+
+                <div style="height: 20em;"></div>
+            </section>
+            <section>
+                <h2 style="margin-top:4%;margin-bottom:5%;">Datasets</h2>
+                <ul class="r-stretch" style="text-align: left; width: 60%; margin-left: 10%;">
+                    <li><span style="font-weight: bold;">Real-world data:</span> Common detection and pose dataset COCO
+                        2017</li>
+                    <li><span style="font-weight: bold;">Style-transfered data:</span> Use style transfer [5] on COCO
+                        2017 images
+                        to create art versions </li>
+                    <li><span style="font-weight: bold;">Labeled art data:</span> People-Art and PoPArt contain manually
+                        annotated art images</li>
+                    <li><span style="font-weight: bold;">Unlabeled art data:</span> ART500k large dataset of art
+                        pictures</li>
+
+                </ul>
+                <table class="tib-table table-data">
+                    <thead>
+                        <tr>
+                            <td>Data set</td>
+                            <td>Images</td>
+                            <td>Persons</td>
+                            <td>Keypoints</td>
+                        </tr>
+
+                    </thead>
+                    <tbody>
+                        <tr class="fragment highlight-current-red" data-fragment-index="1">
+                            <td>COCO 2017</td>
+                            <td style=" text-align: right;">123,287</td>
+                            <td style=" text-align: right;">273,469</td>
+                            <td style=" text-align: right;">1,710,498</td>
+                        </tr>
+                        <tr class="fragment highlight-current-red" data-fragment-index="2">
+                            <td>COCO 2017 (stylized)</td>
+                            <td style=" text-align: right;">246,574</td>
+                            <td style=" text-align: right;">546,938</td>
+                            <td style=" text-align: right;">3,420,996</td>
+                        </tr>
+                        <tr class="fragment highlight-current-red" data-fragment-index="3">
+                            <td>People-Art</td>
+                            <td style=" text-align: right;">4,851</td>
+                            <td style=" text-align: right;">3,498</td>
+                            <td style=" text-align: right;">0</td>
+                        </tr>
+                        <tr class="fragment highlight-current-red" data-fragment-index="3">
+                            <td>PoPArt</td>
+                            <td style=" text-align: right;">2,859</td>
+                            <td style=" text-align: right;">3,514</td>
+                            <td style=" text-align: right;">51,645</td>
+                        </tr>
+                        <tr class="fragment highlight-current-red" data-fragment-index="4">
+                            <td>ART500k</td>
+                            <td style=" text-align: right;">318,869</td>
+                            <td style=" text-align: right;">0</td>
+                            <td style=" text-align: right;">0</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div style="height: 20em;"></div>
+            </section>
+
+            <section>
+                <h2 style="margin-top:4%;margin-bottom:5%;">Bounding Box Detection - People-Art</h2>
+
+                <table class="tib-table table-data">
+                    <thead>
+                        <tr>
+                            <td>Train set</td>
+                            <td>Stylized</td>
+                            <td>Semi</td>
+                            <td>$AP$</td>
+                            <td>$AP_{50}$</td>
+                            <td>$AP_{75}$</td>
+                            <td>$AP_{S}$</td>
+                            <td>$AP_{M}$</td>
+                            <td>$AP_{L}$</td>
+                            <td>$AR$</td>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>COCO 2017</td>
+                            <td>0%</td>
+                            <td></td>
+                            <td>31.18</td>
+                            <td>51.06</td>
+                            <td>31.75</td>
+                            <td>00.75</td>
+                            <td>21.18</td>
+                            <td>32.94</td>
+                            <td>67.28</td>
+                        </tr>
+                        <tr>
+                            <td>COCO 2017</td>
+                            <td>0%</td>
+                            <td>&#10004;</td>
+                            <td class="fragment highlight-current-red" data-fragment-index="1">36.96</td>
+                            <td>59.70</td>
+                            <td>38.85</td>
+                            <td>00.07</td>
+                            <td>21.15</td>
+                            <td>39.50</td>
+                            <td style="font-weight: bold;">73.51</td>
+                        </tr>
+                        <tr>
+                            <td>COCO 2017</td>
+                            <td>50%</td>
+                            <td></td>
+                            <td>36.86</td>
+                            <td>61.13</td>
+                            <td>38.71</td>
+                            <td>00.45</td>
+                            <td>23.86</td>
+                            <td>39.41</td>
+                            <td>72.57</td>
+                        </tr>
+                        <tr>
+                            <td>COCO 2017</td>
+                            <td>50%</td>
+                            <td>&#10004;</td>
+                            <td class="fragment highlight-current-red" data-fragment-index="1">37.44</td>
+                            <td>62.77</td>
+                            <td>37.92</td>
+                            <td>00.24</td>
+                            <td>21.93</td>
+                            <td>40.11</td>
+                            <td>72.96</td>
+                        </tr>
+                        <tr>
+                            <td>COCO 2017</td>
+                            <td>100%</td>
+                            <td></td>
+                            <td>37.27</td>
+                            <td>62.56</td>
+                            <td>39.22</td>
+                            <td>02.40</td>
+                            <td>24.06</td>
+                            <td>39.81</td>
+                            <td>71.65</td>
+                        </tr>
+                        <tr>
+                            <td>COCO 2017</td>
+                            <td>100%</td>
+                            <td>&#10004;</td>
+                            <td class="fragment highlight-current-red" data-fragment-index="1">38.46</td>
+                            <td>63.33</td>
+                            <td>40.47</td>
+                            <td>01.15</td>
+                            <td>23.13</td>
+                            <td>41.08</td>
+                            <td>72.21</td>
+                        </tr>
+                        <tr style="border-top: 1px solid gray;">
+                            <td>People-Art</td>
+                            <td>0%</td>
+                            <td></td>
+                            <td>42.80</td>
+                            <td>72.79</td>
+                            <td>43.50</td>
+                            <td style="font-weight: bold;">06.76</td>
+                            <td>21.23</td>
+                            <td>46.36</td>
+                            <td>70.41</td>
+                        </tr>
+                        <tr class="fragment highlight-current-red" data-fragment-index="2">
+                            <td>People-Art</td>
+                            <td>0%</td>
+                            <td>&#10004;</td>
+                            <td class="fragment highlight-current-red" data-fragment-index="1"
+                                style="font-weight: bold;">44.28
+                            </td>
+                            <td style="font-weight: bold;">73.81</td>
+                            <td style="font-weight: bold;">45.90</td>
+                            <td>05.09</td>
+                            <td style="font-weight: bold;">24.12</td>
+                            <td style="font-weight: bold;">47.69</td>
+                            <td>72.91</td>
+                        </tr>
+
+                    </tbody>
+                </table>
+                <ul class="r-stretch" style="text-align: left; width: 60%; margin-left: 10%;margin-top: 1em;">
+                    <li>Semi-supervised methods always achieve a better Average Precision (AP) and Average Recall (AR)
+                    </li>
+                    <li>Training with domain-specific data achieves best results</li>
+                </ul>
+                <div style="height: 20em;"></div>
+            </section>
+            <section>
+                <h2 style="margin-top:4%;margin-bottom:5%;">Bounding Box Detection - PoPArt</h2>
+
+                <table class="tib-table">
+                    <thead>
+                        <tr>
+                            <td>Train set</td>
+                            <td>Stylized</td>
+                            <td>Semi</td>
+                            <td>$AP$</td>
+                            <td>$AP_{50}$</td>
+                            <td>$AP_{75}$</td>
+                            <td>$AP_{S}$</td>
+                            <td>$AP_{M}$</td>
+                            <td>$AP_{L}$</td>
+                            <td>$AR$</td>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>COCO 2017</td>
+                            <td>0%</td>
+                            <td></td>
+                            <td>22.87</td>
+                            <td>30.41</td>
+                            <td>24.33</td>
+                            <td></td>
+                            <td>10.96</td>
+                            <td>23.36</td>
+                            <td>79.97</td>
+                        </tr>
+                        <tr>
+                            <td>COCO 2017</td>
+                            <td>0%</td>
+                            <td>&#10004;</td>
+                            <td>24.22</td>
+                            <td>33.53</td>
+                            <td>26.12</td>
+                            <td></td>
+                            <td>03.24</td>
+                            <td>24.69</td>
+                            <td>83.77</td>
+                        </tr>
+                        <tr>
+                            <td>COCO 2017</td>
+                            <td>50%</td>
+                            <td></td>
+                            <td>23.22</td>
+                            <td>31.68</td>
+                            <td>24.80</td>
+                            <td></td>
+                            <td>00.04</td>
+                            <td>23.97</td>
+                            <td>83.65</td>
+                        </tr>
+                        <tr>
+                            <td>COCO 2017</td>
+                            <td>50%</td>
+                            <td>&#10004;</td>
+                            <td>22.61</td>
+                            <td>31.25</td>
+                            <td>24.52</td>
+                            <td></td>
+                            <td>03.47</td>
+                            <td>23.24</td>
+                            <td>82.77</td>
+                        </tr>
+                        <tr>
+                            <td>COCO 2017</td>
+                            <td>100%</td>
+                            <td></td>
+                            <td>25.42</td>
+                            <td>35.40</td>
+                            <td>27.30</td>
+                            <td></td>
+                            <td>03.60</td>
+                            <td>26.24</td>
+                            <td>81.28</td>
+                        </tr>
+                        <tr>
+                            <td>COCO 2017</td>
+                            <td>100%</td>
+                            <td>&#10004;</td>
+                            <td>23.59</td>
+                            <td>33.10</td>
+                            <td>25.16</td>
+                            <td></td>
+                            <td>04.80</td>
+                            <td>24.23</td>
+                            <td>82.84</td>
+                        </tr>
+                        <tr style="border-top: 1px solid gray;">
+                            <td>PoPArt</td>
+                            <td>0%</td>
+                            <td></td>
+                            <td>48.98</td>
+                            <td>65.66</td>
+                            <td>52.79</td>
+                            <td></td>
+                            <td style="font-weight: bold;">26.39</td>
+                            <td>49.45</td>
+                            <td>84.68</td>
+                        </tr>
+                        <tr class="fragment highlight-current-red" data-fragment-index="1">
+                            <td>PoPArt</td>
+                            <td>0%</td>
+                            <td>&#10004;</td>
+                            <td style="font-weight: bold;">50.73</td>
+                            <td style="font-weight: bold;">67.28</td>
+                            <td style="font-weight: bold;">53.02</td>
+                            <td></td>
+                            <td>21.32</td>
+                            <td style="font-weight: bold;">51.19</td>
+                            <td style="font-weight: bold;">85.61</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <ul class="r-stretch" style="text-align: left; width: 60%; margin-left: 10%;margin-top: 1em;">
+                    <li>Semi-supervised approaches do not improve AP as much as the People-Art dataset</li>
+                    <li>Semi-supervised training with domain-specific data still achieves the best results</li>
+                </ul>
+                <div style="height: 20em;"></div>
+            </section>
+            <section>
+                <h2 style="margin-top:4%;margin-bottom:5%;">Keypoint Detection - PoPArt</h2>
+
+                <table class="tib-table">
+                    <thead>
+                        <tr>
+                            <td>Train set</td>
+                            <td>Stylized</td>
+                            <td>Semi</td>
+                            <td>$AP$</td>
+                            <td>$AP_{50}$</td>
+                            <td>$AP_{75}$</td>
+                            <td>$AP_{M}$</td>
+                            <td>$AP_{L}$</td>
+                            <td>$AR$</td>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>COCO 2017</td>
+                            <td>0%</td>
+                            <td></td>
+                            <td>22.85</td>
+                            <td>28.11</td>
+                            <td>25.45</td>
+                            <td>02.36</td>
+                            <td>23.67</td>
+                            <td>55.40</td>
+                        </tr>
+                        <td>COCO 2017</td>
+                        <td>0%</td>
+                        <td>&#10004;</td>
+                        <td class="fragment highlight-current-red" data-fragment-index="2">25.25</td>
+                        <td>31.73</td>
+                        <td>28.10</td>
+                        <td>01.22</td>
+                        <td>26.39</td>
+                        <td class="fragment highlight-current-red" data-fragment-index="1">70.09</td>
+                        </tr>
+                        <tr>
+                            <td>COCO 2017</td>
+                            <td>50%</td>
+                            <td></td>
+                            <td>24.01</td>
+                            <td>30.72</td>
+                            <td>26.72</td>
+                            <td>02.15</td>
+                            <td>25.31</td>
+                            <td>66.72</td>
+                        </tr>
+                        <tr>
+                            <td>COCO 2017</td>
+                            <td>50%</td>
+                            <td>&#10004;</td>
+                            <td>24.13</td>
+                            <td>30.52</td>
+                            <td>26.65</td>
+                            <td>01.80</td>
+                            <td>25.54</td>
+                            <td class="fragment highlight-current-red" data-fragment-index="1">68.80</td>
+                        </tr>
+                        <tr>
+                            <td>COCO 2017</td>
+                            <td>100%</td>
+                            <td></td>
+                            <td>26.57</td>
+                            <td>34.26</td>
+                            <td>29.32</td>
+                            <td>01.53</td>
+                            <td>28.45</td>
+                            <td>67.65</td>
+                        </tr>
+                        <tr>
+                            <td>COCO 2017</td>
+                            <td>100%</td>
+                            <td>&#10004;</td>
+                            <td>25.18</td>
+                            <td>31.67</td>
+                            <td>28.13</td>
+                            <td>01.69</td>
+                            <td>26.53</td>
+                            <td class="fragment highlight-current-red" data-fragment-index="1">68.96</td>
+                        </tr>
+                        <tr style="border-top: 1px solid gray;">
+                            <td>People-Art/PoPArt</td>
+                            <td>0%</td>
+                            <td></td>
+                            <td>28.41</td>
+                            <td>36.22</td>
+                            <td>30.73</td>
+                            <td>03.78</td>
+                            <td>29.16</td>
+                            <td>71.85</td>
+                        </tr>
+                        <tr>
+                            <td>People-Art/PoPArt</td>
+                            <td>0%</td>
+                            <td>&#10004;</td>
+                            <td class="fragment highlight-current-red" data-fragment-index="2">29.71</td>
+                            <td>36.37</td>
+                            <td>32.72</td>
+                            <td>02.04</td>
+                            <td>31.18</td>
+                            <td class="fragment highlight-current-red" data-fragment-index="1"
+                                style="font-weight: bold ;">75.83</td>
+                        </tr>
+                        <tr style="border-top: 1px solid gray;">
+                            <td>PoPArt/PoPArt</td>
+                            <td>0%</td>
+                            <td></td>
+                            <td>48.44</td>
+                            <td>60.60</td>
+                            <td>53.19</td>
+                            <td style="font-weight: bold ;">07.71</td>
+                            <td>49.20</td>
+                            <td>70.78</td>
+                        </tr>
+                        <tr>
+                            <td>PoPArt/PoPArt</td>
+                            <td>0%</td>
+                            <td>&#10004;</td>
+                            <td class="fragment highlight-current-red" data-fragment-index="2"
+                                style="font-weight: bold ;">52.58</td>
+                            <td style="font-weight: bold ;">63.92</td>
+                            <td style="font-weight: bold ;">57.35</td>
+                            <td>03.08</td>
+                            <td style="font-weight: bold ;">53.50 </td>
+                            <td class="fragment highlight-current-red" data-fragment-index="1">74.64</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <ul class="r-stretch" style="text-align: left; width: 60%; margin-left: 10%;margin-top: 1em;">
+                    <li>Semi-supervised method significantly improves AR in all cases studied</li>
+                    <li>Semi-supervised method improves AP for all variants that do not use style transfer</li>
+                </ul>
+                <div style="height: 20em;"></div>
+            </section>
+
+
+            <section>
+                <h2 style="margin-top:4%;margin-bottom:5%;">Qualitative results</h2>
+                <div class="r-stretch" style="display: flex; flex-wrap: nowrap;">
+                    <div style="display:flex; flex-direction:column;width:10%;margin-left: 0.1em;">
+                        <img src="graphics/examples_gt_v2.svg"></img>
+                        <span style="font-size:60%;">Ground Truth</span>
+                    </div>
+                    <div style="display:flex; flex-direction:column;width:10%;margin-left: 0.1em;">
+                        <img src="graphics/examples_open_v2.svg"></img>
+                        <span style="font-size:60%;">OpenPose</span>
+                    </div>
+                    <div style="display:flex; flex-direction:column;width:10%;margin-left: 0.1em;">
+                        <img src="graphics/examples_coco_v2.svg"></img>
+                        <span style="font-size:60%;">COCO 2017</span>
+                    </div>
+                    <div style="display:flex; flex-direction:column;width:10%;margin-left: 0.1em;">
+                        <img src="graphics/examples_popart_semi_v2.svg"></img>
+                        <span style="font-size:60%;">PoPArt</span>
+                    </div>
+
+                    <ul class="r-stretch" style="text-align: left;  margin-left: 4%;">
+                        <li>OpenPose [4] results were added for comparison</li>
+                        <li><span style="font-weight: bold;">OpenPose:</span> Many keypoints are not predicted</li>
+                        <li><span style="font-weight: bold;">COCO 2017:</span> Incorrect localization in non-realistic
+                            poses</li>
+                        <li>Especially many errors when:</li>
+                        <ul>
+                            <li>poor contrast</li>
+                            <li>rather abstractly drawn body parts</li>
+                            <li>overlap with other characters</li>
+                        </ul>
+                    </ul>
+                </div>
+                <!-- <div style="height: 20em;"></div> -->
+            </section>
+
+            <section>
+                <h2 style="margin-top:4%;margin-bottom:5%;">User Study on Retrieval Results</h2>
+
+                <img style="width: 100%;" src="graphics/pose_query.svg"></img>
+
+                <ul class="r-stretch" style="text-align: left;  margin-left: 4%;">
+                    <li>12 participants from the departments of computer science and art history</li>
+                    <li>Ranking of 20 result images depending on one of the 10 query images</li>
+                    <li>Each image is labeled as 'relevant', 'irrelevant,' or 'indifferent'</li>
+                    <li>Images are taken from the unused split of the ART500k dataset</li>
+                </ul>
+                <!-- <div style="height: 20em;"></div> -->
+            </section>
+
+            <section>
+                <h2 style="margin-top:4%;margin-bottom:5%;">User Study on Retrieval Results</h2>
+
+                <table class="tib-table">
+                    <thead>
+                        <tr>
+                            <td>Train set</td>
+                            <td>Stylized</td>
+                            <td>Semi</td>
+                            <td>@5</td>
+                            <td>@10</td>
+                            <td>@15</td>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>COCO 2017</td>
+                            <td>0%</td>
+                            <td></td>
+                            <td>56.26</td>
+                            <td>59.29</td>
+                            <td>63.09</td>
+                        </tr>
+                        <tr>
+                            <td>COCO 2017</td>
+                            <td>0%</td>
+                            <td>&#10004;</td>
+                            <td>57.02</td>
+                            <td>56.75</td>
+                            <td>59.56</td>
+                        </tr>
+                        <tr>
+                            <td>COCO 2017</td>
+                            <td>50%</td>
+                            <td></td>
+                            <td>61.23</td>
+                            <td>60.53</td>
+                            <td>62.33</td>
+                        </tr>
+                        <tr>
+                            <td>COCO 2017</td>
+                            <td>50%</td>
+                            <td>&#10004;</td>
+                            <td>57.13</td>
+                            <td>59.00</td>
+                            <td>60.93</td>
+                        </tr>
+                        <tr>
+                            <td>COCO 2017</td>
+                            <td>100%</td>
+                            <td></td>
+                            <td>57.27</td>
+                            <td>59.58</td>
+                            <td>61.31</td>
+                        </tr>
+                        <tr>
+                            <td>COCO 2017</td>
+                            <td>100%</td>
+                            <td>&#10004;</td>
+                            <td>58.44</td>
+                            <td>60.69</td>
+                            <td>63.03</td>
+                        </tr>
+                        <tr style="border-top: 1px solid gray;">
+                            <td>PoPArt</td>
+                            <td>0%</td>
+                            <td></td>
+                            <td>56.74</td>
+                            <td>57.22</td>
+                            <td>59.42</td>
+                        </tr>
+                        <tr class="fragment highlight-current-red" data-fragment-index="1">
+                            <td>PoPArt</td>
+                            <td>0%</td>
+                            <td>&#10004;</td>
+                            <td style="font-weight: bold;">64.13</td>
+                            <td style="font-weight: bold;">62.04</td>
+                            <td style="font-weight: bold;">63.43</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <ul class="r-stretch" style="text-align: left;  margin-top:1em; margin-left: 4%;">
+                    <li>Normalized Discounted Cumulative Gain (NDCG) is used as ranking metric</li>
+                    <li>Semi-supervised PoPArt model outperforms the other models</li>
+                    <li>Difference between the results is less significant, however</li>
+                </ul>
+                <!-- <div style="height: 20em;"></div> -->
+            </section>
+
+            <section>
+                <h2 style="margin-top:4%;margin-bottom:5%;">Conclusions and Future Work</h2>
+
+
+                <h4>Conclusion</h4>
+                <ul class="r-stretch" style="text-align: left;  margin-top:1em; margin-left: 4%;">
+                    <li>We have evaluated various techniques for pose prediction in art</li>
+                    <li>We have shown how a semi-supervised approach can be applied to pose estimation</li>
+                    <li>Our semi-supervised PoPArt model outperforms the other baseline models</li>
+                </ul>
+                <div style="height: 2em;"></div>
+                <h4>Outlook</h4>
+                <ul class="r-stretch" style="text-align: left;  margin-top:1em; margin-left: 4%;">
+                    <li>Our method could be applied to more complex Transformer models even with higher resolution</li>
+                    <li>Evaluation of how semi-supervised learning methods can be combined with style transfer</li>
+                    <li>Extend the PoPArt dataset with more bounding boxes</li>
+                </ul>
+                <div style="height: 20em;"></div>
+            </section>
+
+            <section>
+                <h2 style="margin-top: 10%;">Thank you for your attention!</h2>
+                <p>
+                    <a>https://github.com/TIBHannover/iart-semi-pose</a>
+                </p>
+                <img class="r-stretch" src="images/qr_code.svg"></img>
+            </section>
+
+            <section>
+                <h2 style="margin-top:4%;margin-bottom:5%;">References</h2>
+
+                <div class="r-stretch"
+                    style="text-align: left;display:flex; flex-wrap: wrap; align-content: flex-start">
+
+                    <span style="font-weight: bold;width: 5%;">[1]</span>
+                    <span style="width: 95%;flex-grow: 1;">
+                        Ke Li, Shijie Wang, Xiang Zhang, Yifan Xu, Weijian Xu, and Zhuowen Tu. "Pose Recognition With
+                        Cascade Transformers." In CVPR. 2021.
+                    </span>
+                    <span style="font-weight: bold;width: 5%;">[2]</span>
+                    <span style="width: 95%;flex-grow: 1;">
+                        Mengde Xu, Zheng Zhang, Han Hu, Jianfeng Wang, Lijuan Wang, Fangyun Wei,
+                        Xiang Bai, and Zicheng Liu. "End-to-End Semi-Supervised Object Detection
+                        with Soft Teacher." In ICCV. 2021.
+                    </span>
+                    <span style="font-weight: bold;width: 5%;">[3]</span>
+                    <span style="width: 95%;flex-grow: 1;">
+                        Kihyuk Sohn, David Berthelot, Nicholas Carlini, Zizhao Zhang, Han Zhang, Colin Raffel, Ekin
+                        Dogus Cubuk, Alexey Kurakin, and Chun-Liang Li. "FixMatch: Simplifying Semi-Supervised Learning
+                        with Consistency and Confidence." In NeurIPS. 2020.
+                    </span>
+
+                    <span style="font-weight: bold;width: 5%;">[4]</span>
+                    <span style="width: 95%;flex-grow: 1;">
+                        Zhe Cao, Gines Hidalgo, Tomas Simon, Shih-En Wei, and Yaser Sheikh.
+                        "OpenPose: Realtime Multi-Person 2D Pose Estimation Using Part Affinity Fields." In TPAMI. 2021.
+                    </span>
+
+                    <span style="font-weight: bold;width: 5%;">[5]</span>
+                    <span style="width: 95%;flex-grow: 1;">
+                        Haibo Chen, Lei Zhao, Zhizhong Wang, Zhang Hui Ming, Zhiwen Zuo, Ailin
+                        Li, Wei Xing, and Dongming Lu. "Artistic Style Transfer with Internal-
+                        external Learning and Contrastive Learning."" In NeurIPS. 2021.
+                    </span>
+
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <script src="dist/svg.min.js"></script>
+    <script src="dist/reveal.js"></script>
+    <script src="plugin/notes/notes.js"></script>
+    <script src="plugin/markdown/markdown.js"></script>
+    <script src="plugin/highlight/highlight.js"></script>
+    <script>
+
+        // More info about initialization & config:
+        // - https://revealjs.com/initialization/
+        // - https://revealjs.com/config/
+        var on_approach_slide = false;
+        var approach_fragment_index = 0;
+        var approach_svg = null;
+        var semi_svg = null;
+        var semi_fragment_index = 0;
+        Reveal.initialize({
+            hash: true,
+            width: 1920,
+            height: 1080,
+            slideNumber: 'c/t',
+
+            // Hide cursor if inactive
+            hideInactiveCursor: true,
+
+            // Time before the cursor is hidden (in ms)
+            hideCursorTime: 100,
+            math: {
+                mathjax: 'https://cdn.jsdelivr.net/gh/mathjax/mathjax@2.7.8/MathJax.js',
+                config: 'TeX-AMS_HTML-full',
+                // pass other options into `MathJax.Hub.Config()`
+                TeX: { Macros: { RR: "{\\bf R}" } }
+            },
+            // Learn about plugins: https://revealjs.com/plugins/
+            plugins: [RevealMarkdown, RevealHighlight, RevealNotes, RevealMath]
+        }).then(() => {
+            console.log("ready")
+            Reveal.on('slidechanged', event => {
+                if (event.currentSlide.id == "approach") {
+                    console.log("start")
+                    console.log(event)
+                    console.log(document.getElementById("approach-detr").contentDocument)
+                    const svg_content = document.getElementById("approach-detr").contentDocument
+                    approach_svg = SVG.adopt(svg_content.querySelector("svg"))
+                    // approach_svg.findOne('#input_1').attr({
+                    //     opacity: 0.5
+                    // });
+                    approach_svg.findOne('#input_1').attr({
+                        opacity: 0
+                    })
+                    approach_svg.findOne('#input_2').attr({
+                        opacity: 0
+                    })
+                    approach_svg.findOne('#output_1').attr({
+                        opacity: 0
+                    })
+                    approach_svg.findOne('#output_2').attr({
+                        opacity: 0
+                    })
+                    approach_svg.findOne('#detr_1').attr({
+                        opacity: 0
+                    })
+                    approach_svg.findOne('#detr_2').attr({
+                        opacity: 0
+                    })
+                    approach_svg.findOne('#trans_1').attr({
+                        opacity: 0
+                    })
+                    on_approach_slide = true;
+                    approach_fragment_index = 0;
+
+                    // console.log(SVG.adopt(svg.querySelector("svg")))
+                    // const input_element = svg.getElementById("g1416")
+                    // input_element.setAttribute("hidden", "hidden")
+                    // console.log()
+                }
+                else {
+
+                    on_approach_slide = false;
+                    approach_fragment_index = 0;
+                }
+                if (event.currentSlide.id == "semi") {
+                    console.log("start")
+                    console.log(event)
+                    console.log(document.getElementById("approach-semi").contentDocument)
+                    const svg_content = document.getElementById("approach-semi").contentDocument
+                    semi_svg = SVG.adopt(svg_content.querySelector("svg"))
+                    // semi_svg.findOne('#input_1').attr({
+                    //     opacity: 0.5
+                    // });
+                    semi_svg.findOne('#label_1').attr({
+                        opacity: 0
+                    })
+                    semi_svg.findOne('#unlabel_1').attr({
+                        opacity: 0
+                    })
+                    semi_svg.findOne('#output_1').attr({
+                        opacity: 0
+                    })
+                    semi_svg.findOne('#output_2').attr({
+                        opacity: 0
+                    })
+                    // semi_svg.findOne('#output_3').attr({
+                    //     opacity: 0
+                    // })
+                    semi_svg.findOne('#ema_1').attr({
+                        opacity: 0
+                    })
+                    // semi_svg.findOne('#detr_2').attr({
+                    //     opacity: 0
+                    // })
+                    // semi_svg.findOne('#trans_1').attr({
+                    //     opacity: 0
+                    // })
+                    on_semi_slide = true;
+                    semi_fragment_index = 0;
+
+                    // console.log(SVG.adopt(svg.querySelector("svg")))
+                    // const input_element = svg.getElementById("g1416")
+                    // input_element.setAttribute("hidden", "hidden")
+                    // console.log()
+                }
+                else {
+
+                    on_semi_slide = false;
+                    semi_fragment_index = 0;
+                }
+            });
+            Reveal.on('fragmentshown', event => {
+                console.log(event)
+                // event.fragment = the fragment DOM element
+                approach_fragment_index += 1;
+                console.log(approach_fragment_index)
+                if (on_approach_slide && approach_svg) {
+                    if (approach_fragment_index == 1) {
+                        approach_svg.findOne('#input_1').animate(1000, 0, "now").attr({
+                            opacity: 1
+                        })
+                    }
+                    if (approach_fragment_index == 2) {
+                        approach_svg.findOne('#detr_1').animate(1000, 0, "now").attr({
+                            opacity: 1
+                        })
+                        approach_svg.findOne('#output_1').animate(1000, 500, "now").attr({
+                            opacity: 1
+                        })
+                    }
+                    if (approach_fragment_index == 3) {
+                        approach_svg.findOne('#trans_1').animate(1000, 0, "now").attr({
+                            opacity: 1
+                        })
+                        approach_svg.findOne('#input_2').animate(1000, 500, "now").attr({
+                            opacity: 1
+                        })
+                    }
+                    if (approach_fragment_index == 4) {
+                        approach_svg.findOne('#detr_2').animate(1000, 0, "now").attr({
+                            opacity: 1
+                        })
+                        approach_svg.findOne('#output_2').animate(1000, 500, "now").attr({
+                            opacity: 1
+                        })
+                    }
+                    // if (approach_fragment_index == 5) {
+                    //     approach_svg.findOne('#detr_2').show()
+                    //     approach_svg.findOne('#output_2').show()
+                    // }
+
+                }
+                semi_fragment_index += 1;
+                console.log(semi_fragment_index)
+                if (on_semi_slide && semi_svg) {
+                    if (semi_fragment_index == 1) {
+                        semi_svg.findOne('#label_1').animate(1000, 0, "now").attr({
+                            opacity: 1
+                        })
+                    }
+                    if (semi_fragment_index == 2) {
+                        semi_svg.findOne('#unlabel_1').animate(1000, 0, "now").attr({
+                            opacity: 1
+                        })
+                    }
+                    if (semi_fragment_index == 3) {
+                        semi_svg.findOne('#output_1').animate(1000, 0, "now").attr({
+                            opacity: 1
+                        })
+                    }
+                    if (semi_fragment_index == 4) {
+                        semi_svg.findOne('#output_2').animate(1000, 0, "now").attr({
+                            opacity: 1
+                        })
+                    }
+                    if (semi_fragment_index == 5) {
+                        semi_svg.findOne('#ema_1').animate(1000, 0, "now").attr({
+                            opacity: 1
+                        })
+                    }
+                    // if (semi_fragment_index == 5) {
+                    //     semi_svg.findOne('#detr_2').show()
+                    //     semi_svg.findOne('#output_2').show()
+                    // }
+
+                }
+            });
+
+        })
+
+    </script>
+</body>
+
+</html>
