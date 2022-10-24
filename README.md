@@ -22,4 +22,3 @@ If you are interested in using this model for your own project, there is a Colab
 
 [https://githubtocolab.com/TIBHannover/iart-semi-pose/blob/main/notebooks/example.ipynb](https://githubtocolab.com/TIBHannover/iart-semi-pose/blob/main/notebooks/example.ipynb)
 
-# Models
